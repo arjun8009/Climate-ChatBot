@@ -18,7 +18,7 @@ if st.sidebar.checkbox('Show session state'):
 
 @st.cache_data
 def load_embeddings_df():
-    df = pd.read_parquet('/Users/ranu/Downloads/tipping_points_docs/text_with_embeddings.parquet')
+    df = pd.read_parquet('data/text_with_embeddings.parquet')
     return df
 
 def display_messages_and_sources(source_history):
