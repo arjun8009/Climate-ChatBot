@@ -6,10 +6,26 @@ import json
 
 def get_llm_output(messages, model='gpt-3.5-turbo', max_tokens=500, temperature=0):
 
-    # messages = [
-    # {"role": "system", "content": "You answer questions about the 2022 Winter Olympics."},
-    # {"role": "user", "content": message},
-    # ]
+    '''
+    Get the response from the Language Learning Model (LLM) for the given messages. We are using ChatGPT model for this.
+
+    Parameters:
+    -----------
+    messages: list
+        A list of dictionaries containing the role and content of each message in the conversation. comes from the chat_history in the session state.
+    model: str
+        The name of the model to use. The default is 'gpt-3.5-turbo'.
+    max_tokens: int
+        The maximum number of tokens to generate. The default is 500.
+    temperature: float
+        What sampling temperature to use. Higher values mean the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer. The default is 0.
+    
+    Returns:
+    --------
+    response_message: str
+        The response message from the LLM.
+    '''
+
     response = openai.ChatCompletion.create(
         model=model,
         messages=messages,
@@ -20,6 +36,9 @@ def get_llm_output(messages, model='gpt-3.5-turbo', max_tokens=500, temperature=
     return response_message
 
 def get_or_set_openai_api_key():
+    '''
+    This function will check if the openai api key is set in the secrets.json file. If not, it will ask the user to enter the api key.
+    '''
     import json
     if not os.path.exists("secrets.json"):
         ph1 = st.empty()

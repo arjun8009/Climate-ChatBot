@@ -8,43 +8,14 @@ st.set_page_config(layout="wide")
 from embeddings import get_excerpts_from_database
 from llms import get_llm_output, get_or_set_openai_api_key
 from prompts import system_instruction, user_prompt
+from utils import display_messages_and_sources, display_sources, load_embeddings_df
 
 st.subheader("Tipping Points Bot", divider='rainbow')
 
+# This function will check if the openai api key is set in the secrets.json file. If not, it will ask the user to enter the api key.
 get_or_set_openai_api_key()
 
-if st.sidebar.checkbox('Show session state'):
-    st.sidebar.write(st.session_state)
-
-@st.cache_data
-def load_embeddings_df():
-    df = pd.read_parquet('data/text_with_embeddings.parquet')
-    return df
-
-def display_messages_and_sources(source_history):
-    for item in source_history:
-        user_msg = item.get('question', None)
-        response_msg = item.get('response', None)
-        df_results = item.get('df_results', None)
-
-        if user_msg:
-            with st.chat_message('user'):
-                st.markdown(user_msg)
-
-        if response_msg:
-            with st.chat_message('assistant'):
-                st.markdown(response_msg)
-
-                if st.checkbox('Click to see sources', key=response_msg):
-                    display_sources(response_msg, df_results)
-
-def display_sources(response_msg, df_results):
-    for index, row in df_results.iterrows():
-        st.write(f"Source: {row['file_name']}, Chunk number: {row['chunk_number']}, Similarity: {round(row.get('relatednesses', 0) * 100, 2)} %")
-        st.write(row.get('strings', ''))
-        st.write("-----")
-
-
+# Load the dataframe with the embeddings from the parquet file.
 df = load_embeddings_df()
 
 chat_container = st.container()
@@ -52,18 +23,22 @@ query = st.chat_input("Ask a question here:")
 
 i = 0
 if query:
-    df_results = get_excerpts_from_database(query, df, top_n=5)
+    df_results = get_excerpts_from_database(query, df, top_n=5) # top_n is the number of excerpts to return from the database for the given query.
+    
     excerpts = df_results['strings'].tolist()
-
     user_prompt = user_prompt.replace("<EXCERPTS>", "\n".join(excerpts))
     user_prompt = user_prompt.replace("<QUESTION>", query)
+    
     st.session_state.query = query
+    
+    # Initialize chat history if it doesn't exist and add system_instruction to it. 
     if 'chat_history' not in st.session_state:
         st.session_state.chat_history = []
         st.session_state.chat_history.append({"role": "system", "content": system_instruction})
     
     # Add user_prompt to chat history and later replace it with query
     st.session_state.chat_history.append({"role": "user", "content": user_prompt})
+
     with st.spinner('Thinking...'):
         response = get_llm_output(st.session_state.chat_history, max_tokens=500, temperature=0, model='gpt-3.5-turbo')
     
@@ -74,12 +49,12 @@ if query:
             st.session_state.chat_history[i]['content'] = query
             break
 
-    
+    # Add the response from the bot to the chat history.
     st.session_state.chat_history.append({"role": "assistant", "content": response})
     
+    # Add the query, response and df_results to the source_history.
     if 'source_history' not in st.session_state:
         st.session_state.source_history = []
-    
     st.session_state.source_history.append({'question':query,'response': response, 'df_results': df_results})
 
 with chat_container:
