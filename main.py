@@ -5,12 +5,29 @@ import os
 import time
 st.set_page_config(layout="wide")
 
+# from st_on_hover_tabs import on_hover_tabs
+
+# st.markdown('<style>' + open('./style.css').read() + '</style>', unsafe_allow_html=True)
+
+
+# with st.sidebar:
+#     tabs = on_hover_tabs(tabName=['Settings'], 
+#                          iconName=['settings'], default_choice=0)
+
 from embeddings import get_excerpts_from_database
 from llms import get_llm_output, get_or_set_openai_api_key
 from prompts import system_instruction, user_prompt
 from utils import display_messages_and_sources, display_sources, load_embeddings_df
 
 st.subheader("Tipping Points Bot", divider='rainbow')
+
+model = 'gpt-3.5-turbo'
+model_w = st.toggle("Use GPT-4", value=False, key='model')
+if model_w:
+    model = 'gpt-4'
+else:
+    model = 'gpt-3.5-turbo'
+
 
 # This function will check if the openai api key is set in the secrets.json file. If not, it will ask the user to enter the api key.
 get_or_set_openai_api_key()
@@ -19,7 +36,7 @@ get_or_set_openai_api_key()
 df = load_embeddings_df()
 
 chat_container = st.container()
-query = st.chat_input("Ask a question here:")
+query = st.chat_input("Ask your question here:")
 
 i = 0
 if query:
@@ -39,8 +56,8 @@ if query:
     # Add user_prompt to chat history and later replace it with query
     st.session_state.chat_history.append({"role": "user", "content": user_prompt})
 
-    with st.spinner('Thinking...'):
-        response = get_llm_output(st.session_state.chat_history, max_tokens=500, temperature=0, model='gpt-3.5-turbo')
+    with st.spinner('Thats a great question! Let me think...'):
+        response = get_llm_output(st.session_state.chat_history, max_tokens=500, temperature=0, model=model)
     
     # delete user message from the chat history where the role is user, and replace it with the query.
     # This step is needed to avoid the excerpts to be shown in the chat history which takes up a lot of context length.
@@ -63,5 +80,5 @@ with chat_container:
         display_messages_and_sources(source_history)
     else:
         with st.chat_message('assistant'):
-            st.markdown("Hi! I'm the TP-Bot. I can answer questions about tipping points. Ask me a question to get started.")
+            st.markdown("###### Hi! I'm the TP-Bot. I can answer questions about tipping points. Ask me a question to get started. Please note, I'm still a baby bot, I may make mistakes. Please be patient with me.")
             pass

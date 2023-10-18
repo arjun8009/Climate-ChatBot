@@ -1,5 +1,7 @@
 import streamlit as st
 import pandas as pd
+import sqlite3
+con = sqlite3.connect('data/feedback.db')
 
 @st.cache_data
 def load_embeddings_df():
@@ -36,10 +38,23 @@ def display_messages_and_sources(source_history):
         if response_msg:
             with st.chat_message('assistant'):
                 st.markdown(response_msg)
-
-                # Display the sources, this checkox should be visible only when the bot has responded.
-                if st.checkbox('Click to see sources', key=response_msg):
-                    display_sources(response_msg, df_results)
+                col1, col2 = st.columns([1,1])
+                if col2.checkbox('Wrong Answer? Click here', key=user_msg+response_msg + 'wrong'):
+                    # Uncheck the checkbox with key=response_msg so that the sources are not displayed.                    
+                    feedback = st.text_area("Please enter the correct answer here:")
+                    if st.button("Submit", key=user_msg + response_msg):
+                        if len(feedback) < 10:
+                            st.error("Please write a detailed feedback to help us improve the bot.")
+                            st.stop()
+                        # Save the feedback to the database along with the source_history. for the user_msg.
+                        tmp_dict = {'question': user_msg, 'response': response_msg, 'df_results': df_results.to_csv(), 'feedback': feedback}
+                        df = pd.DataFrame(tmp_dict, index=[0])
+                        df.to_sql('feedback', con, if_exists='append', index=False)
+                        st.success("Sorry about that. I will try to do better next time. Thank you for your feedback!")
+                    st.stop()                
+                if col1.checkbox("You don't trust me? Click here", key=response_msg):
+                    st.markdown("#### Here are the sources I have read to answer your question:")
+                    display_sources(response_msg, df_results)   
 
 def display_sources(response_msg, df_results):
     '''
@@ -58,6 +73,6 @@ def display_sources(response_msg, df_results):
     '''
     
     for index, row in df_results.iterrows():
-        st.write(f"Source: {row['file_name']}, Chunk number: {row['chunk_number']}, Similarity: {round(row.get('relatednesses', 0) * 100, 2)} %")
+        st.info(f"###### **File**: {row['file_name']}, Paragraph number: {row['chunk_number']}, Relevance: {round(row.get('relatednesses', 0) * 100, 2)} %")
         st.write(row.get('strings', ''))
-        st.write("-----")
+        st.markdown("-----")

@@ -4,7 +4,7 @@ import streamlit as st
 import os
 import json
 
-def get_llm_output(messages, model='gpt-3.5-turbo', max_tokens=500, temperature=0):
+def get_llm_output(messages, model='gpt-4', max_tokens=500, temperature=0):
 
     '''
     Get the response from the Language Learning Model (LLM) for the given messages. We are using ChatGPT model for this.
