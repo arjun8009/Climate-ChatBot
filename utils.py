@@ -41,7 +41,7 @@ def display_messages_and_sources(source_history):
                 col1, col2 = st.columns([1,1])
                 if col2.checkbox('Wrong Answer? Click here', key=user_msg+response_msg + 'wrong'):
                     # Uncheck the checkbox with key=response_msg so that the sources are not displayed.                    
-                    feedback = st.text_area("Please enter the correct answer here:")
+                    feedback = st.text_area("Please write a detailed feedback:")
                     if st.button("Submit", key=user_msg + response_msg):
                         if len(feedback) < 10:
                             st.error("Please write a detailed feedback to help us improve the bot.")
@@ -52,7 +52,7 @@ def display_messages_and_sources(source_history):
                         df.to_sql('feedback', con, if_exists='append', index=False)
                         st.success("Sorry about that. I will try to do better next time. Thank you for your feedback!")
                     st.stop()                
-                if col1.checkbox("You don't trust me? Click here", key=response_msg):
+                if col1.checkbox("Click here to view sources", key=user_msg + response_msg):
                     st.markdown("#### Here are the sources I have read to answer your question:")
                     display_sources(response_msg, df_results)   
 

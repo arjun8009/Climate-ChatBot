@@ -6,7 +6,7 @@ THINGS TO REMEMBER:
 - The excerpts are chunks from a big report. The excerpts are not in any particular order. You have to read all the excerpts to understand the context.
 - The answer will be cross-checked with the excerpts given to you. If the answer is not found in the excerpts you will lose credibility.
 - If you can't answer the question from the excerpts, you can ask for more information or gently respond that you are not sure about the answer.
-- You will be given the chat history of the conversation in your messages. You can use the chat history to understand the context of the conversation.
+- You will be given the chat history of the conversation in your messages. You have to follow the chat history to understand the context of the conversation.
 -----------------------------------
 
 """
